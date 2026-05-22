@@ -1,3 +1,12 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Pixeval.Extensions.Formats.Pdf.Tests/Pixeval.Extensions.Formats.Pdf.Tests.csproj" />
   <Project Path="Pixeval.Extensions.Formats.Pdf/Pixeval.Extensions.Formats.Pdf.csproj" />
+  <Project Path="Pixeval.Extensions.Formats.Images/Pixeval.Extensions.Formats.Images.csproj" />
 </Solution>

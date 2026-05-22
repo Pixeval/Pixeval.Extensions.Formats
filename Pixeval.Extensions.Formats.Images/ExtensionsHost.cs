@@ -1,15 +1,16 @@
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Pixeval.Extensions.Common;
-using Pixeval.Extensions.Formats.Pdf.FormatProviders;
+using Pixeval.Extensions.Formats.Images.FormatProviders;
+using Pixeval.Extensions.Formats.Images.Settings;
 using Pixeval.Extensions.SDK;
 
-namespace Pixeval.Extensions.Formats.Pdf;
+namespace Pixeval.Extensions.Formats.Images;
 
 [GeneratedComClass]
 public partial class ExtensionsHost : ExtensionsHostBase
 {
-    public override string ExtensionName => "Pixeval PDF Format";
+    public override string ExtensionName => "Pixeval Image Formats";
 
     public override string AuthorName => "Poker";
 
@@ -17,13 +18,19 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public override string HelpLink => ExtensionLink;
 
-    public override string Description => "Provides PDF output for Pixiv novel downloads.";
+    public override string Description => "Provides JPEG, PNG, APNG, GIF, and WebP output for image downloads.";
 
     public override string Version => "1.0.0";
 
     public override IExtension[] Extensions { get; } =
     [
-        new PdfNovelFormatProviderExtension()
+        new WebpLosslessSettingsExtension(),
+        new JpegImageFormatProviderExtension(),
+        new PngImageFormatProviderExtension(),
+        new WebPImageFormatProviderExtension(),
+        new APngAnimatedImageFormatProviderExtension(),
+        new GifAnimatedImageFormatProviderExtension(),
+        new WebPAnimatedImageFormatProviderExtension()
     ];
 
     public override byte[]? Icon

@@ -1,0 +1,19 @@
+<Project Sdk="MSTest.Sdk/4.2.3">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>Pixeval.Extensions.Formats.Pdf.Tests</RootNamespace>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<PublishAot>true</PublishAot>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<PublishAot>true</PublishAot>
+		<TestingExtensionsProfile>None</TestingExtensionsProfile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Pixeval.Extensions.Formats.Pdf\Pixeval.Extensions.Formats.Pdf.csproj" />
+	</ItemGroup>
+
+</Project>
