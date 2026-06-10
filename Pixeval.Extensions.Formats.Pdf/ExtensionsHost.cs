@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Pixeval.Extensions.Common;
 using Pixeval.Extensions.Formats.Pdf.FormatProviders;
+using Pixeval.Extensions.Formats.Pdf.Strings;
 using Pixeval.Extensions.SDK;
 
 namespace Pixeval.Extensions.Formats.Pdf;
@@ -9,7 +10,7 @@ namespace Pixeval.Extensions.Formats.Pdf;
 [GeneratedComClass]
 public partial class ExtensionsHost : ExtensionsHostBase
 {
-    public override string ExtensionName => "Pixeval PDF Format";
+    public override string ExtensionName => Resource.ExtensionHostName;
 
     public override string AuthorName => "Poker";
 
@@ -17,7 +18,7 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public override string HelpLink => ExtensionLink;
 
-    public override string Description => "Provides PDF output for Pixiv novel downloads.";
+    public override string Description => Resource.ExtensionHostDescription;
 
     public override string Version => "1.0.0";
 

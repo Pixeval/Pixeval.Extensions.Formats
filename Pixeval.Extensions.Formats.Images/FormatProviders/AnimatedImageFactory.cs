@@ -9,13 +9,15 @@ namespace Pixeval.Extensions.Formats.Images.FormatProviders;
 internal static class AnimatedImageFactory
 {
     public static async Task<Image> CreateAsync(
-        IReadOnlyList<Stream> imageStreams,
-        IReadOnlyList<int> delays,
+        IReadOnlyDictionary<Stream, int> images,
         Action<Image> initializeImageMetadata,
         Action<ImageFrame, int, IReadOnlyList<int>> applyFrameMetadata)
     {
-        if (imageStreams.Count is 0)
-            throw new ArgumentException("At least one image stream is required.", nameof(imageStreams));
+        if (images.Count is 0)
+            throw new ArgumentException("At least one image stream is required.", nameof(images));
+
+        var imageStreams = new List<Stream>(images.Keys);
+        var delays = new List<int>(images.Values);
 
         imageStreams[0].Position = 0;
         var image = await Image.LoadAsync(imageStreams[0]);

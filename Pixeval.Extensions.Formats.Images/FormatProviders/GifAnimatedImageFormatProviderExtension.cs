@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
-using FluentIcons.Common;
+using Pixeval.Extensions.Formats.Images.Strings;
 using Pixeval.Extensions.SDK.FormatProviders;
 
 namespace Pixeval.Extensions.Formats.Images.FormatProviders;
@@ -12,14 +12,8 @@ public partial class GifAnimatedImageFormatProviderExtension : AnimatedImageForm
 {
     public override string FormatExtension => ".gif";
 
-    public override string FormatDescription => "GIF";
+    public override string FormatDescription => Resource.GifAnimatedImageFormatLabel;
 
-    public override Symbol Icon => Symbol.Gif;
-
-    public override string Label => "GIF";
-
-    public override string Description => "Exports animated images as GIF files.";
-
-    public override Task FormatImageAsync(IReadOnlyList<Stream> imageStreams, IReadOnlyList<int> delays, string destinationPath) =>
-        AnimatedGifWriter.WriteAsync(imageStreams, delays, destinationPath);
+    public override Task FormatImageAsync(IReadOnlyDictionary<Stream, int> images, string destinationPath) =>
+        AnimatedGifWriter.WriteAsync(images, destinationPath);
 }

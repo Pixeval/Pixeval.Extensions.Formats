@@ -10,9 +10,23 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Pixeval.Extensions.SDK" Version="4.4.3" />
+		<PackageReference Include="Pixeval.Extensions.SDK" Version="4.4.4" />
 		<PackageReference Include="QuestPDF" Version="2026.5.0" />
 
 		<EmbeddedResource Include="Assets/logo.png" Link="logo.png" LogicalName="logo" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Strings\Resource.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resource.resx</DependentUpon>
+		</Compile>
+
+		<EmbeddedResource Update="Strings\Resource.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resource.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
 </Project>

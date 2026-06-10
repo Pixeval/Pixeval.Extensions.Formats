@@ -1,7 +1,7 @@
 using System.IO;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
-using FluentIcons.Common;
+using Pixeval.Extensions.Formats.Images.Strings;
 using Pixeval.Extensions.SDK.FormatProviders;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
@@ -13,13 +13,7 @@ public partial class PngImageFormatProviderExtension : StaticImageFormatProvider
 {
     public override string FormatExtension => ".png";
 
-    public override string FormatDescription => "PNG";
-
-    public override Symbol Icon => Symbol.Image;
-
-    public override string Label => "PNG";
-
-    public override string Description => "Exports static images as PNG files.";
+    public override string FormatDescription => Resource.PngImageFormatLabel;
 
     public override async Task FormatImageAsync(Stream imageStream, string destinationPath)
     {

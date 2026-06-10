@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
 using FluentIcons.Common;
+using Pixeval.Extensions.Formats.Pdf.Strings;
 using Pixeval.Extensions.SDK.FormatProviders;
 
 namespace Pixeval.Extensions.Formats.Pdf.FormatProviders;
@@ -12,13 +13,7 @@ public partial class PdfNovelFormatProviderExtension : NovelFormatProviderExtens
 {
     public override string FormatExtension => ".pdf";
 
-    public override string FormatDescription => "PDF";
-
-    public override Symbol Icon => Symbol.DocumentPdf;
-
-    public override string Label => "PDF";
-
-    public override string Description => "Exports Pixiv novels as PDF files.";
+    public override string FormatDescription => Resource.PdfNovelFormatLabel;
 
     public override Task FormatNovelAsync(string novelInput, string destinationPath, IReadOnlyDictionary<string, Stream> images)
     {

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
-using FluentIcons.Common;
+using Pixeval.Extensions.Formats.Images.Strings;
 using Pixeval.Extensions.SDK.FormatProviders;
 
 namespace Pixeval.Extensions.Formats.Images.FormatProviders;
@@ -12,14 +12,8 @@ public partial class WebPAnimatedImageFormatProviderExtension : AnimatedImageFor
 {
     public override string FormatExtension => ".webp";
 
-    public override string FormatDescription => "Animated WebP";
+    public override string FormatDescription => Resource.WebPAnimatedImageFormatLabel;
 
-    public override Symbol Icon => Symbol.Gif;
-
-    public override string Label => "Animated WebP";
-
-    public override string Description => "Exports animated images as WebP files.";
-
-    public override Task FormatImageAsync(IReadOnlyList<Stream> imageStreams, IReadOnlyList<int> delays, string destinationPath) =>
-        AnimatedWebpWriter.WriteAsync(imageStreams, delays, destinationPath);
+    public override Task FormatImageAsync(IReadOnlyDictionary<Stream, int> images, string destinationPath) =>
+        AnimatedWebpWriter.WriteAsync(images, destinationPath);
 }

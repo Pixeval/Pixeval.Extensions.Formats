@@ -8,13 +8,12 @@ namespace Pixeval.Extensions.Formats.Images.FormatProviders;
 
 internal static class AnimatedGifWriter
 {
-    public static async Task WriteAsync(IReadOnlyList<Stream> imageStreams, IReadOnlyList<int> delays, string destinationPath)
+    public static async Task WriteAsync(IReadOnlyDictionary<Stream, int> images, string destinationPath)
     {
         ImageWriterHelper.EnsureDestinationDirectory(destinationPath);
 
         using var animatedImage = await AnimatedImageFactory.CreateAsync(
-            imageStreams,
-            delays,
+            images,
             static image => image.Metadata.GetGifMetadata().RepeatCount = 0,
             ApplyFrameMetadata);
         await animatedImage.SaveAsGifAsync(destinationPath, new GifEncoder());

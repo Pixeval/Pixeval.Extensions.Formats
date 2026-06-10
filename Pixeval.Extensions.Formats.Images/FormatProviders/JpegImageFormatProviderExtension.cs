@@ -1,7 +1,7 @@
 using System.IO;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
-using FluentIcons.Common;
+using Pixeval.Extensions.Formats.Images.Strings;
 using Pixeval.Extensions.SDK.FormatProviders;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -13,13 +13,7 @@ public partial class JpegImageFormatProviderExtension : StaticImageFormatProvide
 {
     public override string FormatExtension => ".jpg";
 
-    public override string FormatDescription => "JPG";
-
-    public override Symbol Icon => Symbol.Image;
-
-    public override string Label => "JPG";
-
-    public override string Description => "Exports static images as JPEG files.";
+    public override string FormatDescription => Resource.JpegImageFormatLabel;
 
     public override async Task FormatImageAsync(Stream imageStream, string destinationPath)
     {
