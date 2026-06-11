@@ -28,7 +28,7 @@ internal sealed class PixivNovelPdfWriter(IReadOnlyDictionary<string, Stream> im
 
     private Action<TextDescriptor>? _lastDelegate;
 
-    static PixivNovelPdfWriter() => QuestPDF.Settings.License = LicenseType.Community;
+    static PixivNovelPdfWriter() => QuestPdfNativeDependencyResolver.Configure();
 
     public void Write(string novelInput, string destinationPath)
     {
