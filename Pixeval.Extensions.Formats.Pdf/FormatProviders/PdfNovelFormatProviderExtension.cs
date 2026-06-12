@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
-using FluentIcons.Common;
 using Pixeval.Extensions.Formats.Pdf.Strings;
 using Pixeval.Extensions.SDK.FormatProviders;
+using QuestPDF.Fluent;
 
 namespace Pixeval.Extensions.Formats.Pdf.FormatProviders;
 
@@ -17,8 +17,15 @@ public partial class PdfNovelFormatProviderExtension : NovelFormatProviderExtens
 
     public override Task FormatNovelAsync(string novelInput, string destinationPath, IReadOnlyDictionary<string, Stream> images)
     {
-        var writer = new PixivNovelPdfWriter(images);
-        writer.Write(novelInput, destinationPath);
+        var document = CreateDocument(novelInput, images);
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+        document.GeneratePdf(destinationPath);
         return Task.CompletedTask;
+    }
+
+    public static Document CreateDocument(string novelInput, IReadOnlyDictionary<string, Stream> images)
+    {
+        var writer = new PixivNovelPdfWriter(images);
+        return writer.CreateDocument(novelInput);
     }
 }

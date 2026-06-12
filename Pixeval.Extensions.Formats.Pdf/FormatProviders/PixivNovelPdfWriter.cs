@@ -8,7 +8,7 @@ using QuestPDF.Infrastructure;
 
 namespace Pixeval.Extensions.Formats.Pdf.FormatProviders;
 
-internal sealed class PixivNovelPdfWriter(IReadOnlyDictionary<string, Stream> images)
+internal sealed class PixivNovelPdfWriter
 {
     private const float MarginHorizontal = 90;
     private const float MarginVertical = 72;
@@ -17,22 +17,19 @@ internal sealed class PixivNovelPdfWriter(IReadOnlyDictionary<string, Stream> im
     private const float ImageMaxHeight = 360;
     private const float ImageVerticalPadding = 10;
 
-    private static string[] ImageExtensions { get; } =
-    [
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".bmp",
-        ".webp"
-    ];
-
     private Action<TextDescriptor>? _lastDelegate;
+
+    private Dictionary<(long Id, int Page), Stream> IllustrationImages { get; } = [];
+
+    private Dictionary<long, Stream> UploadedImages { get; } = [];
 
     static PixivNovelPdfWriter() => QuestPdfNativeDependencyResolver.Configure();
 
-    public void Write(string novelInput, string destinationPath)
+    public PixivNovelPdfWriter(IReadOnlyDictionary<string, Stream> images) => InitImages(images);
+
+    public Document CreateDocument(string novelInput)
     {
-        var document = Document.Create(document =>
+        return Document.Create(document =>
             document.Page(page =>
             {
                 page.Size(PageSizes.A4);
@@ -41,9 +38,6 @@ internal sealed class PixivNovelPdfWriter(IReadOnlyDictionary<string, Stream> im
                 page.DefaultTextStyle(style => style.FontSize(FontSize).LineHeight(2));
                 page.Content().Column(column => Compose(column, novelInput));
             }));
-
-        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-        document.GeneratePdf(destinationPath);
     }
 
     private void Compose(ColumnDescriptor column, string novelInput)
@@ -232,30 +226,58 @@ internal sealed class PixivNovelPdfWriter(IReadOnlyDictionary<string, Stream> im
         _ = column.Item();
     }
 
-    private void AddUploadedImage(ColumnDescriptor column, string imageId) => AddImage(column, imageId.Trim());
+    private void AddUploadedImage(ColumnDescriptor column, string imageId)
+    {
+        if (!long.TryParse(imageId.Trim(), null, out var id)
+            || !UploadedImages.TryGetValue(id, out var imageStream))
+            return;
+
+        AddImage(column, imageStream, id.ToString());
+    }
 
     private void AddPixivImage(ColumnDescriptor column, string image)
     {
-        var name = image.Trim();
-        if (!name.Contains('-'))
-            name += "-1";
-
-        AddImage(column, name);
-    }
-
-    private void AddImage(ColumnDescriptor column, string imageName)
-    {
-        if (!TryGetImage(imageName, out var imageStream))
+        if (!TryParsePixivImageKey(image.Trim(), out var illustrationId, out var page)
+            || !IllustrationImages.TryGetValue((illustrationId, page), out var imageStream))
             return;
 
+        AddImage(column, imageStream, $"{illustrationId}-{page}", GenerateIllustrationWebUri(illustrationId));
+    }
+
+    private static bool TryParsePixivImageKey(string imageName, out long illustrationId, out int page)
+    {
+        page = 1;
+        var separatorIndex = imageName.IndexOf('-');
+        if (separatorIndex is -1)
+            return long.TryParse(imageName, null, out illustrationId);
+
+        if (imageName.IndexOf('-', separatorIndex + 1) is not -1
+            || !long.TryParse(imageName[..separatorIndex], null, out illustrationId)
+            || !int.TryParse(imageName[(separatorIndex + 1)..], null, out page))
+        {
+            illustrationId = 0;
+            page = 0;
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void AddImage(ColumnDescriptor column, Stream imageStream, string imageName, string? hyperlink = null)
+    {
         try
         {
             imageStream.Position = 0;
-            _ = column.Item()
+            var imageContainer = column.Item()
                 .EnsureSpace(ImageMaxHeight + ImageVerticalPadding * 2)
                 .PaddingVertical(ImageVerticalPadding)
                 .AlignCenter()
-                .MaxHeight(ImageMaxHeight)
+                .MaxHeight(ImageMaxHeight);
+
+            if (hyperlink is not null)
+                imageContainer = imageContainer.Hyperlink(hyperlink);
+
+            _ = imageContainer
                 .Image(imageStream)
                 .FitArea();
         }
@@ -264,28 +286,22 @@ internal sealed class PixivNovelPdfWriter(IReadOnlyDictionary<string, Stream> im
             _ = column.Item().Text($"[{imageName}]");
         }
     }
+    private static string GenerateIllustrationWebUri(long illustrationId) =>
+        $"https://www.pixiv.net/artworks/{illustrationId}";
 
-    private bool TryGetImage(string imageName, out Stream imageStream)
+    private void InitImages(IReadOnlyDictionary<string, Stream> images)
     {
-        if (images.TryGetValue(imageName, out imageStream!))
-            return true;
-
-        foreach (var imageExtension in ImageExtensions)
-        {
-            if (images.TryGetValue(imageName + imageExtension, out imageStream!))
-                return true;
-        }
-
         foreach (var (name, stream) in images)
         {
-            if (Path.GetFileNameWithoutExtension(name) != imageName)
+            var token = Path.GetFileNameWithoutExtension(name);
+            if (TryParsePixivImageKey(token, out var illustrationId, out var page) && token.Contains('-'))
+            {
+                IllustrationImages[(illustrationId, page)] = stream;
                 continue;
+            }
 
-            imageStream = stream;
-            return true;
+            if (long.TryParse(token, null, out var uploadedImageId))
+                UploadedImages[uploadedImageId] = stream;
         }
-
-        imageStream = null!;
-        return false;
     }
 }
