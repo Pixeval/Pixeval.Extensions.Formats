@@ -10,8 +10,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Pixeval.Extensions.SDK" Version="4.4.4" />
-		<PackageReference Include="QuestPDF" Version="2026.5.0" />
+		<PackageReference Include="Pixeval.Extensions.SDK" Version="5.0.0" />
+		<PackageReference Include="QuestPDF" Version="2026.7.1" />
 
 		<EmbeddedResource Include="Assets/logo.png" Link="logo.png" LogicalName="logo" />
 	</ItemGroup>
