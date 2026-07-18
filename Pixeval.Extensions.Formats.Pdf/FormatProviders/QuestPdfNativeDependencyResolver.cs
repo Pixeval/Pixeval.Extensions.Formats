@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,13 +11,20 @@ namespace Pixeval.Extensions.Formats.Pdf.FormatProviders;
 
 internal static class QuestPdfNativeDependencyResolver
 {
-    private static readonly Lock InitializationLock = new();
-    private static readonly ConcurrentBag<IntPtr> NativeLibraryHandles = [];
-    private static bool _isInitialized;
+    private static readonly Lock _InitializationLock = new();
+    private static bool _IsInitialized;
 
     public static void Configure()
     {
-        Initialize();
+        lock (_InitializationLock)
+        {
+            if (!_IsInitialized)
+            {
+                NativeLibrary.SetDllImportResolver(typeof(QuestPDF.Settings).Assembly, ResolveNativeLibrary);
+                _IsInitialized = true;
+            }
+        }
+
         QuestPDF.Settings.License = LicenseType.Community;
 
         var extensionDirectory = ExtensionsHostBase.ExtensionDirectory;
@@ -30,79 +35,24 @@ internal static class QuestPdfNativeDependencyResolver
         }
     }
 
-    private static void Initialize()
-    {
-        if (_isInitialized)
-            return;
-
-        lock (InitializationLock)
-        {
-            if (_isInitialized)
-                return;
-
-            NativeLibrary.SetDllImportResolver(typeof(QuestPDF.Settings).Assembly, ResolveNativeLibrary);
-            _isInitialized = true;
-        }
-    }
-
     private static IntPtr ResolveNativeLibrary(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        var mappedLibraryName = GetMappedLibraryName(libraryName);
+        var extensionDirectory = ExtensionsHostBase.ExtensionDirectory;
+        if (string.IsNullOrWhiteSpace(extensionDirectory))
+            return 0;
 
-        foreach (var directory in GetSearchDirectories())
+        var fileName = GetMappedLibraryName(libraryName);
+        var candidates = new[]
         {
-            if (!Directory.Exists(directory))
-                continue;
+            Path.Combine(extensionDirectory, fileName),
+            Path.Combine(extensionDirectory, "runtimes", GetRuntimeIdentifier(), "native", fileName)
+        };
 
-            PreloadWindowsSidecarDependencies(directory);
-
-            var candidatePath = Path.Combine(directory, mappedLibraryName);
-            if (NativeLibrary.TryLoad(candidatePath, out var handle))
+        foreach (var candidate in candidates)
+            if (NativeLibrary.TryLoad(candidate, out var handle))
                 return handle;
-        }
 
-        return IntPtr.Zero;
-    }
-
-    private static IEnumerable<string> GetSearchDirectories()
-    {
-        foreach (var directory in GetBaseDirectories())
-        {
-            yield return directory;
-            yield return Path.Combine(directory, "runtimes", GetRuntimeIdentifier(), "native");
-        }
-    }
-
-    private static IEnumerable<string> GetBaseDirectories()
-    {
-        if (!string.IsNullOrWhiteSpace(ExtensionsHostBase.ExtensionDirectory))
-            yield return ExtensionsHostBase.ExtensionDirectory;
-
-        if (!string.IsNullOrWhiteSpace(AppContext.BaseDirectory))
-            yield return AppContext.BaseDirectory;
-
-        if (!string.IsNullOrWhiteSpace(Environment.CurrentDirectory))
-            yield return Environment.CurrentDirectory;
-
-        var currentDirectory = Directory.GetCurrentDirectory();
-        if (!string.IsNullOrWhiteSpace(currentDirectory))
-            yield return currentDirectory;
-    }
-
-    private static void PreloadWindowsSidecarDependencies(string directory)
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return;
-
-        foreach (var dependencyName in WindowsSidecarDependencies)
-        {
-            var dependencyPath = Path.Combine(directory, dependencyName);
-            if (!File.Exists(dependencyPath))
-                continue;
-
-            if (NativeLibrary.TryLoad(dependencyPath, out var handle))
-                NativeLibraryHandles.Add(handle);
-        }
+        return 0;
     }
 
     private static void AddFontDiscoveryPath(string path)
@@ -149,13 +99,4 @@ internal static class QuestPdfNativeDependencyResolver
 
         return os + "-" + architecture;
     }
-
-    private static readonly string[] WindowsSidecarDependencies =
-    [
-        "libwinpthread-1.dll",
-        "libgcc_s_seh-1.dll",
-        "libgcc_s_dw2-1.dll",
-        "libstdc++-6.dll",
-        "zlib1.dll"
-    ];
 }
