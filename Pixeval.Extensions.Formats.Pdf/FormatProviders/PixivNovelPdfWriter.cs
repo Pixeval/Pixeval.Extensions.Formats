@@ -23,6 +23,8 @@ internal sealed class PixivNovelPdfWriter
 
     private Dictionary<long, Stream> UploadedImages { get; } = [];
 
+    private Stream? CoverImage { get; set; }
+
     static PixivNovelPdfWriter() => QuestPdfNativeDependencyResolver.Configure();
 
     public PixivNovelPdfWriter(IReadOnlyDictionary<string, Stream> images) => InitImages(images);
@@ -36,7 +38,16 @@ internal sealed class PixivNovelPdfWriter
                 page.MarginHorizontal(MarginHorizontal);
                 page.MarginVertical(MarginVertical);
                 page.DefaultTextStyle(style => style.FontSize(FontSize).LineHeight(2));
-                page.Content().Column(column => Compose(column, novelInput));
+                page.Content().Column(column =>
+                {
+                    if (CoverImage is { } coverImage)
+                    {
+                        AddCoverImage(column, coverImage);
+                        column.Item().PageBreak();
+                    }
+
+                    Compose(column, novelInput);
+                });
             }));
     }
 
@@ -286,6 +297,24 @@ internal sealed class PixivNovelPdfWriter
             _ = column.Item().Text($"[{imageName}]");
         }
     }
+
+    private static void AddCoverImage(ColumnDescriptor column, Stream imageStream)
+    {
+        imageStream.Position = 0;
+        using var image = Image.FromStream(imageStream);
+        imageStream.Position = 0;
+        var imageSize = image.Size;
+        _ = column.Item()
+            .Height(PageSizes.A4.Height - MarginVertical * 2)
+            .AlignCenter()
+            .AlignMiddle()
+            .Width(imageSize.Width)
+            .Height(imageSize.Height)
+            .ScaleToFit()
+            .Image(imageStream)
+            .UseOriginalImage();
+    }
+
     private static string GenerateIllustrationWebUri(long illustrationId) =>
         $"https://www.pixiv.net/artworks/{illustrationId}";
 
@@ -294,6 +323,12 @@ internal sealed class PixivNovelPdfWriter
         foreach (var (name, stream) in images)
         {
             var token = Path.GetFileNameWithoutExtension(name);
+            if (string.Equals(token, "cover", StringComparison.OrdinalIgnoreCase))
+            {
+                CoverImage = stream;
+                continue;
+            }
+
             if (TryParsePixivImageKey(token, out var illustrationId, out var page) && token.Contains('-'))
             {
                 IllustrationImages[(illustrationId, page)] = stream;

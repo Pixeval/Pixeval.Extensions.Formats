@@ -20,7 +20,7 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public override string Description => Resource.ExtensionHostDescription;
 
-    public override string Version => "1.0.0";
+    public override string Version => "1.0.1";
 
     public override IExtension[] Extensions { get; } =
     [

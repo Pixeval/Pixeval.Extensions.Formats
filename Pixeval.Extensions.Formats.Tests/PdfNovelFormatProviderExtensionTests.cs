@@ -1,3 +1,4 @@
+using System.Text;
 using Pixeval.Extensions.Formats.Pdf.FormatProviders;
 using QuestPDF.Fluent;
 
@@ -12,6 +13,7 @@ public sealed class PdfNovelFormatProviderExtensionTests
         using var imageStream = new MemoryStream(Convert.FromBase64String(SamplePngBase64));
         var images = new Dictionary<string, Stream>
         {
+            ["cover.png"] = imageStream,
             ["1"] = imageStream
         };
 
@@ -28,6 +30,38 @@ public sealed class PdfNovelFormatProviderExtensionTests
             images);
 
         document.GeneratePdfAndShow();
+    }
+
+    [TestMethod]
+    public void CreateDocument_WithCover_GeneratesSeparateFirstPage()
+    {
+        using var coverStream = new MemoryStream(Convert.FromBase64String(SamplePngBase64));
+        var images = new Dictionary<string, Stream>
+        {
+            ["cover.png"] = coverStream
+        };
+
+        var document = PdfNovelFormatProviderExtension.CreateDocument("Novel text", images);
+        var pdf = document.GeneratePdf();
+        var pdfText = Encoding.ASCII.GetString(pdf);
+
+        Assert.IsTrue(CountPdfPages(pdfText) >= 2);
+    }
+
+    private static int CountPdfPages(string pdfText)
+    {
+        const string pageType = "/Type /Page";
+        var count = 0;
+        var index = 0;
+        while ((index = pdfText.IndexOf(pageType, index, StringComparison.Ordinal)) >= 0)
+        {
+            var next = index + pageType.Length;
+            if (next == pdfText.Length || char.IsWhiteSpace(pdfText[next]))
+                ++count;
+            index = next;
+        }
+
+        return count;
     }
 
     private const string SamplePngBase64 =
